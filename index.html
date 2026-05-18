@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<title>我们的故事</title>
+<style>
+  :root {
+    --text-main: #4a3b3c;
+    --text-muted: #8a7b7c;
+    --accent: #d47a7a;
+    --glass-bg: rgba(255, 255, 255, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.7);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; background-color: #fdfbfb; }
+  
+  body {
+    font-family: -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    color: var(--text-main);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .serif {
+    font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  }
+
+  /* Animated Dreamy Background */
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: -2;
+    background: linear-gradient(-45deg, #f9d6d6, #f3e5f5, #ffe0e0, #fce4ec);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Noise Overlay for texture */
+  .noise {
+    position: fixed; inset: 0; z-index: -1;
+    opacity: 0.25; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  /* Cover */
+  .cover {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .cover.hide { opacity: 0; transform: scale(1.08); pointer-events: none; }
+  
+  .cover-flower {
+    font-size: 56px; margin-bottom: 32px;
+    filter: drop-shadow(0 8px 16px rgba(212,122,122,0.2));
+    animation: float 4s ease-in-out infinite;
+  }
+  .cover-title {
+    font-size: 38px; font-weight: 500; letter-spacing: 8px; margin-bottom: 16px; margin-left: 8px;
+    color: var(--text-main);
+  }
+  .cover-sub {
+    font-size: 14px; color: var(--text-muted); letter-spacing: 2px; font-weight: 300;
+  }
+  .cover-tap {
+    position: absolute; bottom: 80px;
+    font-size: 12px; color: var(--accent); letter-spacing: 4px;
+    animation: pulse 2s infinite; text-transform: uppercase;
+  }
+
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* Main scroll container */
+  .container {
+    height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 40px;
+  }
+  /* Hide scrollbar */
+  .container::-webkit-scrollbar { display: none; }
+  
+  .section {
+    min-height: 100vh; scroll-snap-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px; position: relative;
+  }
+
+  /* Cards - Glassmorphism & Editorial */
+  .card {
+    width: 100%; max-width: 340px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 40px 32px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.8);
+    position: relative; overflow: hidden;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 1s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+  
+  .card-number {
+    position: absolute; top: -16px; right: 4px;
+    font-size: 140px; font-weight: 800;
+    color: rgba(255,255,255,0.8);
+    pointer-events: none;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: -6px;
+    z-index: 0;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.02);
+  }
+
+  .card-flower {
+    position: absolute; bottom: -20px; right: -20px;
+    font-size: 120px; opacity: 0.12; z-index: 0;
+    transform: rotate(-15deg); pointer-events: none;
+    filter: grayscale(20%);
+  }
+
+  .card-content { position: relative; z-index: 1; }
+
+  .card-date {
+    font-size: 12px; letter-spacing: 3px; color: var(--accent);
+    margin-bottom: 16px; font-weight: 600; text-transform: uppercase;
+  }
+  
+  .card-title {
+    font-size: 24px; margin-bottom: 24px; line-height: 1.4;
+    color: var(--text-main); font-weight: 600;
+  }
+  
+  .card-body {
+    font-size: 15px; line-height: 2.1; color: #5a4b4c; font-weight: 400;
+  }
+  .card-body p { margin-bottom: 12px; }
+  .card-body p:last-child { margin-bottom: 0; }
+
+  /* Scroll hint */
+  .scroll-hint {
+    position: absolute; bottom: 40px;
+    font-size: 12px; color: var(--text-muted); letter-spacing: 2px;
+    animation: float 2.5s infinite;
+  }
+
+  /* Final section */
+  .final-text {
+    font-size: 22px; line-height: 2.2; text-align: center;
+    color: var(--text-main); max-width: 320px;
+    opacity: 0; transform: translateY(30px) scale(0.95);
+    transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .final-text.visible { opacity: 1; transform: translateY(0) scale(1); }
+  .final-text .highlight {
+    color: var(--accent); font-weight: 600; font-size: 28px;
+    display: block; margin: 12px 0 24px 0;
+  }
+  .final-text .sub-text {
+    font-size: 14px; color: var(--text-muted); font-family: -apple-system, sans-serif;
+    letter-spacing: 1px;
+  }
+
+  /* Hug button */
+  .hug-btn {
+    margin-top: 50px; padding: 18px 48px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 40px;
+    color: var(--accent); font-size: 16px; font-weight: 600; letter-spacing: 2px;
+    box-shadow: 0 12px 32px rgba(212, 122, 122, 0.15);
+    cursor: pointer;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .section.visible .hug-btn {
+    animation: fadeUp 1s 0.6s forwards;
+  }
+  .hug-btn:active { transform: scale(0.94); box-shadow: 0 4px 12px rgba(212, 122, 122, 0.1); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Floating hearts/sparkles */
+  .heart {
+    position: fixed; pointer-events: none; font-size: 24px; z-index: 200;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+    animation: floatUp 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+    15% { opacity: 1; transform: translate(0, -20px) scale(1.2) rotate(-10deg); }
+    100% { opacity: 0; transform: translate(var(--rx), -180px) scale(1) rotate(var(--rz)); }
+  }
+
+  .sparkle {
+    position: fixed; pointer-events: none; border-radius: 50%; z-index: 200;
+    box-shadow: 0 0 12px currentColor;
+    animation: spark 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  @keyframes spark {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0); }
+  }
+  /* Music toggle */
+  .music-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 1000;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1s, transform 0.3s;
+  }
+  .music-btn.visible { opacity: 1; pointer-events: auto; }
+  .music-btn.playing { animation: spin 4s linear infinite; }
+  .music-btn:active { transform: scale(0.9); }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<audio id="bgMusic" src="come-here.mp3" loop></audio>
+<div class="music-btn" id="musicBtn">🎵</div>
+
+<div class="bg-canvas"></div>
+<div class="noise"></div>
+
+<!-- Cover -->
+<div class="cover" id="cover">
+  <div class="cover-flower">🌷</div>
+  <div class="cover-title serif">情书 7 之我们的五月</div>
+  <div class="cover-sub">写给累了一天的靖迪宝宝～ (๑•́ ₃ •̀๑)</div>
+  <div class="cover-tap">轻触打开</div>
+</div>
+
+<!-- Main content -->
+<div class="container" id="container">
+
+  <!-- Date 1 -->
+  <div class="section">
+    <div class="card" data-animate>
+      <div class="card-number">01</div>
+      <div class="card-flower">🎬</div>
+      <div class="card-content">
+        <div class="card-date">May 02 · 第一次见面</div>
+        <div class="card-title serif">费大厨和一场电影</div>
+        <div class="card-body">
+          <p>你说费大厨好好吃，眼睛大大的亮亮的样子好美～ (✧◡✧)</p>
+          <p>一起看了《穿Prada的女王2》，一起讨论剧情。</p>
+          <p>我还想再见你～ (///ω///)</p>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-hint">↓ 继续滑动</div>
+  </div>
+
+  <!-- Date 2 -->
+  <div class="section">
+    <div class="card" data-animate>
+      <div class="card-number">02</div>
+      <div class="card-flower">🌷</div>
+      <div class="card-content">
+        <div class="card-date">May 04 · 第二次见面</div>
+        <div class="card-title serif">火锅、KTV、和白色郁金香</div>
+        <div class="card-body">
+          <p>火锅热气腾腾，我们吃的好饱 (๑´ㅂ`๑)</p>
+          <p>“想唱什么就唱。”</p>
+          <p>给你带了白色郁金香，希望你天天开心 ⸜(๑'ᵕ'๑)⸝</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date 3 -->
+  <div class="section">
+    <div class="card" data-animate>
+      <div class="card-number">03</div>
+      <div class="card-flower">🤍</div>
+      <div class="card-content">
+        <div class="card-date">May 05 · 第三次见面</div>
+        <div class="card-title serif">小区门口的白色郁金香</div>
+        <div class="card-body">
+          <p>那天让你生气了 (´･_･`)</p>
+          <p>我不知道该说什么，就去你家小区门口等着。</p>
+          <p>手里还是白色郁金香。有些话说不出口，花替我说 (⁎˃ᆺ˂)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date 4 -->
+  <div class="section">
+    <div class="card" data-animate>
+      <div class="card-number">04</div>
+      <div class="card-flower">🌸</div>
+      <div class="card-content">
+        <div class="card-date">May 10 · 第四次见面</div>
+        <div class="card-title serif">白裙子、火烧云、粉色郁金香</div>
+        <div class="card-body">
+          <p>你穿了白色的裙子，像仙女在和我一起吃饭 (´∀`)</p>
+          <p>吃了火烧云，还好一切顺利，又去KTV。</p>
+          <p>被你在乎和接纳很开心～ (*´▽`*)</p>
+          <p>粉色郁金香，送给你～</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date 5 -->
+  <div class="section">
+    <div class="card" data-animate>
+      <div class="card-number">05</div>
+      <div class="card-flower">💛</div>
+      <div class="card-content">
+        <div class="card-date">May 15 · 第五次见面</div>
+        <div class="card-title serif">深圳回来，你来接我</div>
+        <div class="card-body">
+          <p>从深圳带回了黄色郁金香。</p>
+          <p>晚上你开车来接我，在家烤肉，看投影 ٩(๑❛ᴗ❛๑)۶</p>
+          <p>窝在一起的两天，是我这个月最温暖的记忆。</p>
+          <p>谢谢你让我有了一个想回去的地方～</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final -->
+  <div class="section">
+    <div class="final-text serif" data-animate>
+      <p>五月还没过完</p>
+      <p>但你已经是我今年</p>
+      <p class="highlight">最好的事情</p>
+      <p class="sub-text">累了就好好休息吧～等俺回去陪你 (づ￣ ³￣)づ</p>
+    </div>
+    <button class="hug-btn" data-animate id="hugBtn">隔空抱你一下 🤗</button>
+  </div>
+
+</div>
+
+<script>
+// Cover logic
+const cover = document.getElementById('cover');
+const bgMusic = document.getElementById('bgMusic');
+const musicBtn = document.getElementById('musicBtn');
+let coverOpen = false;
+
+cover.addEventListener('click', () => {
+  cover.classList.add('hide');
+  coverOpen = true;
+  // Play music on first interaction
+  bgMusic.play().then(() => {
+    musicBtn.classList.add('visible', 'playing');
+  }).catch(e => console.log('Audio play failed:', e));
+  
+  setTimeout(() => cover.style.display = 'none', 1200);
+});
+
+// Music toggle logic
+musicBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (bgMusic.paused) {
+    bgMusic.play();
+    musicBtn.classList.add('playing');
+  } else {
+    bgMusic.pause();
+    musicBtn.classList.remove('playing');
+  }
+});
+
+// Scroll animation observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.35 });
+document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+
+// Touch/click floating hearts
+const hearts = ['🤍','💕','💗','✨','🌸','💫','🥰','💝','🌷'];
+document.body.addEventListener('click', (e) => {
+  if(!coverOpen) return;
+  if(e.target.id === 'hugBtn' || e.target.closest('#hugBtn')) return;
+  
+  for(let i = 0; i < 2; i++){
+    setTimeout(() => {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      h.style.left = (e.clientX - 12 + (Math.random() - 0.5) * 40) + 'px';
+      h.style.top = (e.clientY - 12 + (Math.random() - 0.5) * 40) + 'px';
+      h.style.setProperty('--rx', (Math.random() - 0.5) * 100 + 'px');
+      h.style.setProperty('--rz', (Math.random() - 0.5) * 60 + 'deg');
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 2500);
+    }, i * 150);
+  }
+});
+
+// Hug button logic
+const hugBtn = document.getElementById('hugBtn');
+const hugMsgs = ['抱紧你了！ (๑>◡<๑)','再抱一下~ (づ｡◕‿‿◕｡)づ','最喜欢你了 ( ˘ ³˘)♥','你今天辛苦了 (摸摸头)','muaaa 💋','早点休息哦 (∪｡∪)｡｡｡zzZ','有我在呢 (๑•̀ㅂ•́)و✧'];
+let hugIdx = 0;
+hugBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  
+  // Sparkle burst
+  for(let i = 0; i < 16; i++){
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const angle = Math.PI * 2 * i / 16;
+    const dist = 60 + Math.random() * 60;
+    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    s.style.left = e.clientX + 'px';
+    s.style.top = e.clientY + 'px';
+    s.style.color = ['#f8b195','#f67280','#c06c84','#ff9a9e','#fecfef'][Math.floor(Math.random() * 5)];
+    s.style.background = s.style.color;
+    s.style.width = s.style.height = (3 + Math.random() * 5) + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1200);
+  }
+  
+  hugBtn.textContent = hugMsgs[hugIdx % hugMsgs.length];
+  hugIdx++;
+  setTimeout(() => { hugBtn.textContent = '再抱一下 🤗'; }, 2000);
+});
+</script>
+</body>
+</html>
